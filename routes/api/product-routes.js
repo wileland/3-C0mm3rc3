@@ -67,18 +67,30 @@ router.put('/:id', async (req, res) => {
       return;
     }
 
-    // Assuming req.body.tagIds is an array of numbers representing the tags associated with the product
+    // If there are tagIds provided, update product tags
     if (req.body.tagIds && req.body.tagIds.length) {
-      const productTagIdArr = req.body.tagIds.map((tag_id) => {
-        return { product_id: req.params.id, tag_id };
+      const productTags = await ProductTag.findAll({
+        where: { product_id: req.params.id },
       });
-      await ProductTag.bulkCreate(productTagIdArr, {
-        updateOnDuplicate: ["tag_id"],
-      });
+      const productTagIds = productTags.map(({ tag_id }) => tag_id);
+      const newProductTags = req.body.tagIds
+        .filter((tag_id) => !productTagIds.includes(tag_id))
+        .map((tag_id) => {
+          return { product_id: req.params.id, tag_id };
+        });
+      const productTagsToRemove = productTags
+        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+        .map(({ id }) => id);
+
+      // Execute both actions
+      await Promise.all([
+        ProductTag.destroy({ where: { id: productTagsToRemove } }),
+        ProductTag.bulkCreate(newProductTags),
+      ]);
     }
 
-    // Respond with a success message
-    res.status(200).json({ message: 'Product updated successfully.' });
+    // Respond with update confirmation
+    res.status(200).json({ message: 'Product updated!' });
   } catch (err) {
     // Log any errors that occur during the update
     console.error("Error during product update: ", err);
@@ -88,32 +100,6 @@ router.put('/:id', async (req, res) => {
 
 module.exports = router;
 
-
-
-    // Update product tags
-    const productTags = await ProductTag.findAll({
-      where: { product_id: req.params.id }
-    });
-    const productTagIds = productTags.map(({ tag_id }) => tag_id);
-    const newProductTags = req.body.tagIds
-      .filter((tag_id) => !productTagIds.includes(tag_id))
-      .map((tag_id) => {
-        return { product_id: req.params.id, tag_id };
-      });
-    const productTagsToRemove = productTags
-      .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
-      .map(({ id }) => id);
-
-    await Promise.all([
-      ProductTag.destroy({ where: { id: productTagsToRemove } }),
-      ProductTag.bulkCreate(newProductTags),
-    ]);
-
-    res.status(200).json({ message: 'Product updated!' });
-  } catch (err) {
-    res.status(400).json(err);
-  }
-});
 
 // Delete product
 router.delete('/:id', async (req, res) => {
