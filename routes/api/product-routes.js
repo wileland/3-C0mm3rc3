@@ -48,6 +48,7 @@ router.post('/', async (req, res) => {
   }
 });
 
+
 // Delete a product by ID
 router.delete('/:id', async (req, res) => {
   try {
@@ -64,6 +65,48 @@ router.delete('/:id', async (req, res) => {
   } catch (err) {
     console.error("Error deleting a product: ", err);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+// Update a product by ID
+router.put('/:id', async (req, res) => {
+  try {
+    const productUpdateResponse = await Product.update(req.body, {
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    if (productUpdateResponse[0] === 0) {
+      res.status(404).json({ message: 'No product found with this id!' });
+      return;
+    }
+
+    // Update product tags if tagIds are provided in the request
+    if (req.body.tagIds && req.body.tagIds.length) {
+      const productTags = await ProductTag.findAll({
+        where: { product_id: req.params.id },
+      });
+      const productTagIds = productTags.map(({ tag_id }) => tag_id);
+      const newProductTags = req.body.tagIds
+        .filter((tag_id) => !productTagIds.includes(tag_id))
+        .map((tag_id) => {
+          return { product_id: req.params.id, tag_id };
+        });
+      const productTagsToRemove = productTags
+        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+        .map(({ id }) => id);
+
+      // Execute both actions
+      await Promise.all([
+        ProductTag.destroy({ where: { id: productTagsToRemove } }),
+        ProductTag.bulkCreate(newProductTags),
+      ]);
+    }
+
+    res.status(200).json({ message: 'Product updated!' });
+  } catch (err) {
+    console.error("Error updating a product: ", err);
+    res.status(400).json({ message: 'Bad request' });
   }
 });
 
