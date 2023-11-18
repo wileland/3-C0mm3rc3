@@ -3,6 +3,7 @@ node_modules/
 
 # Environment configuration
 .env
+.env.test
 
 # MacOS folder settings
 .DS_Store

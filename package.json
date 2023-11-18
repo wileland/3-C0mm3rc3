@@ -1,30 +1,41 @@
 {
-  "name": "module-13-challenge-orm",
+  "name": "3-c0mm3rc3",
   "version": "1.0.0",
-  "description": "",
+  "description": "A backend application for e-commerce platforms built with Express.js and Sequelize.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_ENV=test jest",
     "start": "node server.js",
     "watch": "nodemon server.js",
     "seed": "node seeds/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git@work.github.com:coding-boot-camp/module-13-challenge-orm.git"
+    "url": "https://github.com/wileland?tab=repositories"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "e-commerce",
+    "backend",
+    "express",
+    "sequelize",
+    "nodejs"
+  ],
+  "author": "Your Name",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "jest": "^29.7.0",
     "nodemon": "^2.0.3",
     "supertest": "^6.3.3"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "dotenv": "^8.6.0",
     "express": "^4.18.2",
     "mysql2": "^2.3.3",
     "sequelize": "^5.22.5"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }
