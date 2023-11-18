@@ -11,11 +11,12 @@ router.get('/', async (req, res) => {
     });
     res.status(200).json(tagData);
   } catch (err) {
-    res.status(500).json(err);
+    console.error("Error getting all tags: ", err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Get one tag
+// Get one tag by its `id`
 router.get('/:id', async (req, res) => {
   try {
     const tagData = await Tag.findByPk(req.params.id, {
@@ -27,17 +28,19 @@ router.get('/:id', async (req, res) => {
     }
     res.status(200).json(tagData);
   } catch (err) {
-    res.status(500).json(err);
+    console.error("Error getting tag by ID: ", err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Create new tag
+// Create a new tag
 router.post('/', async (req, res) => {
   try {
     const tagData = await Tag.create(req.body);
     res.status(200).json(tagData);
   } catch (err) {
-    res.status(400).json(err);
+    console.error("Error creating a tag: ", err);
+    res.status(400).json({ message: 'Bad request' });
   }
 });
 
@@ -55,7 +58,8 @@ router.put('/:id', async (req, res) => {
     }
     res.status(200).json({ message: 'Tag updated!' });
   } catch (err) {
-    res.status(400).json(err);
+    console.error("Error updating a tag: ", err);
+    res.status(400).json({ message: 'Bad request' });
   }
 });
 
@@ -73,7 +77,8 @@ router.delete('/:id', async (req, res) => {
     }
     res.status(200).json({ message: 'Tag deleted!' });
   } catch (err) {
-    res.status(500).json(err);
+    console.error("Error deleting a tag: ", err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

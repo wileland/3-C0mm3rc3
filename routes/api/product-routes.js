@@ -48,7 +48,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-
 // Delete a product by ID
 router.delete('/:id', async (req, res) => {
   try {
@@ -67,6 +66,7 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 // Update a product by ID
 router.put('/:id', async (req, res) => {
   try {
