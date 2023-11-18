@@ -18,44 +18,83 @@ afterAll(async () => {
 });
 
 describe('User model', () => {
+  // Test for creating a user
   test('create user', async () => {
     const userData = { username: 'testuser', email: 'test@example.com', password: 'password123' };
-    const user = await User.create(userData);
-    expect(user.username).toBe(userData.username);
-    expect(user.email).toBe(userData.email);
-    // Add more assertions as needed
+    try {
+      const user = await User.create(userData);
+      expect(user.username).toBe(userData.username);
+      expect(user.email).toBe(userData.email);
+    } catch (error) {
+      console.error('Error in create user test: ', error);
+      throw error;
+    }
   });
 
+  // Test for password hashing
   test('password hashing', async () => {
     const userData = { username: 'testuser2', email: 'test2@example.com', password: 'password123' };
     const user = await User.create(userData);
     
-    // Verify that password hashing is working
     expect(user.password).not.toBe(userData.password);
     expect(user.checkPassword(userData.password)).toBe(true);
   });
 
+  // Test for required fields validation
   test('validation: required fields', async () => {
-    // Create a user with missing required fields
     const userData = { username: 'testuser3' };
-    
-    // Attempt to create a user with missing required fields
     try {
       await User.create(userData);
     } catch (error) {
       expect(error.name).toBe('SequelizeValidationError');
-      // Add more specific validation checks here if needed
+      expect(error.errors[0].path).toBe('email'); // Checks if the 'email' field is causing the validation error
+      expect(error.errors[1].path).toBe('password'); // Checks if the 'password' field is causing the validation error
     }
   });
 
-  // Add more test cases for validation, login, unique email, edge cases, etc.
+  // Test for unique email constraint
+  test('unique email', async () => {
+    const userData = { username: 'uniqueUser', email: 'unique@example.com', password: 'uniquePass123' };
+    await User.create(userData);
 
-  // Cleanup
-  afterAll(async () => {
     try {
-      await sequelize.close();
+      await User.create({ ...userData, username: 'anotherUser' }); // Attempt to create a user with the same email
     } catch (error) {
-      console.error('Error closing sequelize connection: ', error);
+      expect(error.name).toBe('SequelizeUniqueConstraintError');
+      expect(error.errors[0].path).toBe('email');
     }
+  });
+
+  // Test for login functionality
+  test('login with valid credentials', async () => {
+    const userData = { username: 'loginUser', email: 'login@example.com', password: 'loginPass123' };
+    await User.create(userData);
+
+    const foundUser = await User.findOne({ where: { email: userData.email } });
+    expect(foundUser.checkPassword(userData.password)).toBe(true);
+  });
+
+  // Test for login with incorrect password
+  test('login with incorrect password', async () => {
+    const userData = { username: 'wrongPassUser', email: 'wrongPass@example.com', password: 'correctPass123' };
+    await User.create(userData);
+
+    const foundUser = await User.findOne({ where: { email: userData.email } });
+    expect(foundUser.checkPassword('incorrectPassword')).toBe(false);
+  });
+
+  // Edge case tests
+  test('extremely long username', async () => {
+    const userData = { username: 'a'.repeat(256), email: 'longUser@example.com', password: 'longUserPass123' };
+    try {
+      await User.create(userData);
+    } catch (error) {
+      expect(error.name).toBe('SequelizeValidationError');
+    }
+  });
+
+  // Cleanup after each test
+  afterEach(async () => {
+    await User.destroy({ where: {} });
   });
 });
