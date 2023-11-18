@@ -49,12 +49,46 @@ router.post('/', async (req, res) => {
 
 // Update product
 router.put('/:id', async (req, res) => {
+  // Log the ID and body to see what is being sent to this endpoint
+  console.log("Requested ID: ", req.params.id);
+  console.log("Request Body: ", req.body);
+
   try {
-    await Product.update(req.body, {
+    // Proceed with the update logic
+    const productUpdateResponse = await Product.update(req.body, {
       where: {
         id: req.params.id,
       },
     });
+
+    // Check if any rows were updated
+    if (productUpdateResponse[0] === 0) {
+      res.status(404).json({ message: 'No product found with this id!' });
+      return;
+    }
+
+    // Assuming req.body.tagIds is an array of numbers representing the tags associated with the product
+    if (req.body.tagIds && req.body.tagIds.length) {
+      const productTagIdArr = req.body.tagIds.map((tag_id) => {
+        return { product_id: req.params.id, tag_id };
+      });
+      await ProductTag.bulkCreate(productTagIdArr, {
+        updateOnDuplicate: ["tag_id"],
+      });
+    }
+
+    // Respond with a success message
+    res.status(200).json({ message: 'Product updated successfully.' });
+  } catch (err) {
+    // Log any errors that occur during the update
+    console.error("Error during product update: ", err);
+    res.status(400).json(err);
+  }
+});
+
+module.exports = router;
+
+
 
     // Update product tags
     const productTags = await ProductTag.findAll({
