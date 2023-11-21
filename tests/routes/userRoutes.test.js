@@ -31,7 +31,8 @@ describe('User routes', () => {
       .send({ email: 'test@example.com', password: 'password123' });
 
     expect(res.statusCode).toBe(200);
-    // Add more assertions as needed
+    expect(res.body).toHaveProperty('token'); // Check if token is present
+    expect(res.body.user.id).toBeTruthy(); // Check if user ID is returned
   });
 
   test('validate user input', async () => {
@@ -40,7 +41,7 @@ describe('User routes', () => {
       .send({ username: '', email: 'invalid-email', password: 'short' });
 
     expect(res.statusCode).toBe(400);
-    // Add more assertions as needed
+    expect(res.body.message).toContain('Invalid email or password'); // Specific error message
   });
 
   test('unique email constraint', async () => {
@@ -52,22 +53,23 @@ describe('User routes', () => {
       .send({ username: 'anotheruser', email: 'test@example.com', password: 'password456' });
 
     expect(res.statusCode).toBe(400);
-    // Add more assertions as needed
+    expect(res.body.message).toContain('email must be unique'); // Specific error message
   });
 
   test('edge cases', async () => {
-    // Test edge cases like empty username or extremely long username
+    // Test for empty username
     const res1 = await request(app)
       .post('/api/users/register')
       .send({ username: '', email: 'test@example.com', password: 'password123' });
+    expect(res1.statusCode).toBe(400);
+    expect(res1.body.message).toContain('Invalid email or password'); // Specific error message
 
+    // Test for extremely long username
     const res2 = await request(app)
       .post('/api/users/register')
       .send({ username: 'a'.repeat(256), email: 'test@example.com', password: 'password123' });
-
-    expect(res1.statusCode).toBe(400);
     expect(res2.statusCode).toBe(400);
-    // Add more assertions as needed
+    expect(res2.body.message).toContain('username must be less than 256 characters'); // Specific error message
   });
 
   // Cleanup after tests

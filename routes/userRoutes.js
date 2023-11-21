@@ -1,20 +1,11 @@
 const router = require('express').Router();
 const { User } = require('../models');
-const jwt = require('jsonwebtoken');
+const { generateToken } = require('../config/auth'); // Import generateToken from auth.js
 
 // Function for consistent error response
 const sendErrorResponse = (res, statusCode, message) => {
   console.error(message);
   res.status(statusCode).json({ message });
-};
-
-// Function to generate JWT token
-const generateToken = (user) => {
-  const secretKey = process.env.JWT_SECRET_KEY;
-  const token = jwt.sign({ id: user.id, email: user.email }, secretKey, {
-    expiresIn: '24h',
-  });
-  return token;
 };
 
 // Function for validating email and password
