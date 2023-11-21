@@ -1,18 +1,19 @@
 const router = require('express').Router();
-const { Tag, Product } = require('../../models');
+const { Tag, Product, ProductTag } = require('../../models');
 
-// The `/api/tags` endpoint
+// Function for consistent error response
+const sendErrorResponse = (res, statusCode, message) => {
+  console.error(message);
+  res.status(statusCode).json({ message });
+};
 
 // Get all tags
 router.get('/', async (req, res) => {
   try {
-    const tagData = await Tag.findAll({
-      include: [{ model: Product }],
-    });
+    const tagData = await Tag.findAll({ include: [{ model: Product }] });
     res.status(200).json(tagData);
   } catch (err) {
-    console.error("Error getting all tags: ", err);
-    res.status(500).json({ message: 'Internal server error' });
+    sendErrorResponse(res, 500, 'Internal server error');
   }
 });
 
@@ -36,11 +37,15 @@ router.get('/:id', async (req, res) => {
 // Create a new tag
 router.post('/', async (req, res) => {
   try {
+    // Basic validation for request body
+    if (!req.body.name) {
+      sendErrorResponse(res, 400, 'Tag name is required');
+      return;
+    }
     const tagData = await Tag.create(req.body);
-    res.status(200).json(tagData);
+    res.status(201).json(tagData);
   } catch (err) {
-    console.error("Error creating a tag: ", err);
-    res.status(400).json({ message: 'Bad request' });
+    sendErrorResponse(res, 400, 'Bad request');
   }
 });
 
@@ -66,10 +71,12 @@ router.put('/:id', async (req, res) => {
 // Delete a tag
 router.delete('/:id', async (req, res) => {
   try {
+    // Delete associated entries in ProductTag first
+    await ProductTag.destroy({ where: { tag_id: req.params.id } });
+
+    // Then delete the tag itself
     const tagData = await Tag.destroy({
-      where: {
-        id: req.params.id,
-      },
+      where: { id: req.params.id },
     });
     if (!tagData) {
       res.status(404).json({ message: 'No tag found with this id!' });
