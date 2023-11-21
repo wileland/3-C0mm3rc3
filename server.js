@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { json, urlencoded } = require('express');
+
 const sequelize = require('./config/connection'); // Import the sequelize instance
 const userRoutes = require('./routes/userRoutes');
 const routes = require('./routes');
@@ -8,8 +8,10 @@ const routes = require('./routes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(json());
-app.use(urlencoded({ extended: true }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use('/api/users', userRoutes);
 app.use(routes);
 

@@ -12,6 +12,7 @@ if (process.env.NODE_ENV === "test") {
     process.env.DB_PW,   // Test database password
     {
       host: process.env.DB_HOST, // Test database host
+      port: process.env.DB_PORT, // Test database port
       dialect: 'mysql',
       dialectOptions: {
         decimalNumbers: true,
@@ -46,7 +47,8 @@ if (process.env.NODE_ENV === "test") {
     process.env.DB_USER,
     process.env.DB_PW,
     {
-      host: 'localhost',
+      host: process.env.DB_HOST, // Use the DB_HOST from your .env file
+      port: process.env.DB_PORT, // Use the DB_PORT from your .env file
       dialect: 'mysql',
       dialectOptions: {
         decimalNumbers: true,
