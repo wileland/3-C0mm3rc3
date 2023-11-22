@@ -7,11 +7,17 @@ const routes = require('./routes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Root route
+app.get('/', (req, res) => {
+  res.send('Welcome to the 3 C0mm3rc3 API!');
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api/users", userRoutes);
 
-app.use('/api/users', userRoutes); // Assuming this includes the registration and login routes
-app.use(routes); // Assuming this handles all other routes
+app.use('/api/users', userRoutes); // 
+app.use(routes); // 
 
 // Synchronize the models with the database
 sequelize.sync({ force: false }).then(() => {
